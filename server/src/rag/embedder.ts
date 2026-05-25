@@ -56,9 +56,20 @@ export async function create_vector_record(raw_data: RawTransactionRow[]): Promi
             cleanedJsonString = jsonRegexMatch[0];
         }
 
-        const parsed = JSON.parse(cleanedJsonString);
-        const cleanedDescription = parsed.merchant || excelRow["Description 1"];
-        const category = parsed.category || 'Other';
+        // Strip illegal backslash escapes (e.g. A\&W, \+) that break JSON.parse
+        cleanedJsonString = cleanedJsonString.replace(/\\([^"\\/bfnrtu])/g, '$1');
+
+        let cleanedDescription = excelRow["Description 1"];
+        let category = 'Other';
+        try {
+            const parsed = JSON.parse(cleanedJsonString);
+            cleanedDescription = parsed.merchant || excelRow["Description 1"];
+            category = parsed.category || 'Other';
+        } catch {
+            // Fall back to raw Excel description so the row still gets embedded
+            cleanedDescription = excelRow["Description 1"];
+            category = 'Other';
+        }
 
         // 2. Synthesize your final unified narrative sentence context
         const embeddingPayload = `search_document: Category: ${category}. Merchant: ${cleanedDescription}.`;
@@ -94,6 +105,7 @@ export async function create_vector_record(raw_data: RawTransactionRow[]): Promi
 
     // Execute all rows concurrently in parallel batches across threads
     await Promise.all(processingPromises);
-    
+    store.save_to_disk();
+
     console.log(`\n Ingestion complete! Storage state updated: ${store.get_size()} total vectors indexed.`);
 }

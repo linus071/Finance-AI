@@ -1,5 +1,6 @@
 // server/src/test-store.ts
 import { MemoryVectorStore, VectorRecord } from './rag/vectorStore';
+import 'dotenv/config';
 
 const store = new MemoryVectorStore();
 

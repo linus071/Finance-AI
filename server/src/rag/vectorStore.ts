@@ -1,3 +1,8 @@
+import fs from 'fs';
+import path from 'path';
+
+const VECTOR_DB_PATH = path.join(__dirname, '../../vector_db.json');
+
 export interface VectorRecord {
     id: string;
     vector: number[];
@@ -15,6 +20,29 @@ export interface VectorRecord {
 
 export class MemoryVectorStore {
     private storage: VectorRecord[] = [];
+
+    constructor() {
+        this.load_from_disk();
+    }
+
+    public save_to_disk(): void {
+        fs.writeFileSync(VECTOR_DB_PATH, JSON.stringify(this.storage, null, 2), 'utf-8');
+    }
+
+    public load_from_disk(): void {
+        if (!fs.existsSync(VECTOR_DB_PATH)) {
+            return;
+        }
+        try {
+            const raw = fs.readFileSync(VECTOR_DB_PATH, 'utf-8');
+            const loaded = JSON.parse(raw) as VectorRecord[];
+            if (Array.isArray(loaded)) {
+                this.storage = loaded;
+            }
+        } catch (err) {
+            console.warn('Warning: Failed to load vector_db.json:', err);
+        }
+    }
 
     //Ingestion Phase: Adds a structured vector transaction record to memory
     public add_vector_record(record: VectorRecord): void {
