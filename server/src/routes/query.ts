@@ -1,6 +1,6 @@
 // server/src/routes/query.ts
 import type { Request, Response } from 'express';
-import { getLLMClient, MODEL } from '../llm/client';
+import { getLLMClient, getActiveModelName } from '../llm/client';
 import { retrieveContext } from '../rag/retriever';
 
 const SYSTEM_PROMPT = `You are a privacy-first personal finance assistant.
@@ -21,8 +21,9 @@ export async function handleQuery(req: Request, res: Response): Promise<void> {
     const context = await retrieveContext(userQuery, sessionId, 20);
 
     const client = getLLMClient();
+    const activeModel = getActiveModelName();
     const completion = await client.chat.completions.create({
-      model: MODEL,
+      model: activeModel,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: `Transaction context:\n${context}\n\nUser question: ${userQuery.trim()}` },
