@@ -19,7 +19,6 @@ export interface Transaction {
 export interface SessionData {
   sessionId: string;
   transactions: Transaction[];
-  vectors: Float32Array[];
   vectorStore: MemoryVectorStore;
   createdAt: Date;
 }
@@ -30,9 +29,8 @@ export function createSession(): SessionData {
   const sessionId = crypto.randomUUID();
   const session: SessionData = {
     sessionId,
-    transactions: [],
-    vectors: [],
-    vectorStore: new MemoryVectorStore(),
+    transactions: [], // For exact math and tool execution
+    vectorStore: new MemoryVectorStore(), // For semantic RAG searches
     createdAt: new Date(),
   };
   sessionStore.set(sessionId, session);

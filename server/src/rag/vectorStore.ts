@@ -90,4 +90,8 @@ export class MemoryVectorStore {
     public get_size(): number {
         return this.storage.length;
     }
+
+    public get_all_records(): VectorRecord[] {
+        return this.storage;
+    }
 }
