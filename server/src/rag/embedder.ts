@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { VectorRecord } from './vectorStore';
-import { getEmbedding, getOllamaClient, CHAT_MODEL } from '../llm/client';
+import { getEmbedding, getOllamaClient, getActiveModelName } from '../llm/client';
 import { SessionData, Transaction } from '../session'; // Import Session structures
 
 export interface RawTransactionRow {
@@ -20,6 +20,7 @@ export interface RawTransactionRow {
  */
 export async function ingest_user_file(session: SessionData, raw_data: RawTransactionRow[]): Promise<void> {
     const client = getOllamaClient();
+    const CHAT_MODEL = getActiveModelName();
     
     // Arrays to hold our processed results
     const processedTransactions: Transaction[] = [];
@@ -119,7 +120,7 @@ export async function ingest_user_file(session: SessionData, raw_data: RawTransa
     processedVectors.forEach(rec => session.vectorStore.add_vector_record(rec));
 
     // Optional: Save this specific session state to a unique file if persistence is required
-    // session.vectorStore.save_to_disk(); 
+    session.vectorStore.save_to_disk(); 
 
     console.log(`\n Ingestion complete! Session ${session.sessionId} populated with ${session.transactions.length} items.`);
 }
