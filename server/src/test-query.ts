@@ -1,4 +1,5 @@
-import { sessionStore } from './session'; // Import the real store
+// server/src/test-query.ts
+import { sessionStore } from './session'; 
 import { handleQuery } from './routes/query';
 import { Request, Response } from 'express';
 import { MemoryVectorStore } from './rag/vectorStore';
@@ -8,21 +9,47 @@ import crypto from 'crypto';
 async function runQueryTest() {
   console.log("🚀 Starting Query Integration Test...");
 
-  // 1. Setup: Create a session and add it to the global store
   const sessionId = crypto.randomUUID();
+  
+  // Clean initialization without the redundant vectors array
   const session = {
     sessionId,
-    transactions: [],
-    vectors: [],
+    transactions: [] as any[], 
     vectorStore: new MemoryVectorStore(),
     createdAt: new Date()
   };
   sessionStore.set(sessionId, session);
 
-  // 2. Data Injection: Add a test record so the AI has something to find
+  // 1. RAW DATA INJECTION (For exact math tools)
+  session.transactions = [
+    {
+      id: "test-rec-001",
+      accountType: "MasterCard",
+      accountNumber: "5415...",
+      date: "2026-04-17",
+      description1: "A&W STORE# 0751",
+      description2: "",
+      amountCad: -11.96, // Negative because it's spending!
+      merchant: "A&W",
+      category: "Food & Dining"
+    },
+    {
+      id: "test-rec-002",
+      accountType: "MasterCard",
+      accountNumber: "5415...",
+      date: "2026-04-20",
+      description1: "A&W STORE# 0751",
+      description2: "",
+      amountCad: -15.50,
+      merchant: "A&W",
+      category: "Food & Dining"
+    }
+  ];
+
+  // 2. VECTOR STORAGE INJECTION (For semantic RAG searching)
   session.vectorStore.add_vector_record({
     id: "test-rec-001",
-    vector: new Array(384).fill(0.1), // Mock vector
+    vector: new Array(384).fill(0.1), 
     metadata: {
       context: "Food & Dining transaction: A&W STORE. Amount: 11.96 CAD. Date: 2026-04-17.",
       category: "Food & Dining",
@@ -50,14 +77,12 @@ async function runQueryTest() {
     }
   });
   
-  console.log(`✅ Dummy record added. Store size: ${session.vectorStore.get_size()}`);
+  console.log(`✅ Test Data Synchronized. Ledger items: ${session.transactions.length}, Vector store size: ${session.vectorStore.get_size()}`);
 
-  // 3. Mock Request
   const mockReq = {
     body: { sessionId, userQuery: "How much did I spend at A&W in April?" }
   } as Request;
 
-  // 4. Mock Response
   const mockRes = {
     json: (data: any) => console.log("\n🤖 AI Answer:\n", data.answer),
     status: (code: number) => ({ 
@@ -65,7 +90,6 @@ async function runQueryTest() {
     })
   } as unknown as Response;
 
-  // 5. Execution
   console.log("🔍 Running handleQuery...");
   await handleQuery(mockReq, mockRes);
 }

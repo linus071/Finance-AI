@@ -1,12 +1,15 @@
-// server/src/test-embedder.ts
-import { create_vector_record, store } from './rag/embedder';
+import { ingest_user_file } from './rag/embedder';
 import { getEmbedding } from './llm/client';
+import { createSession } from './session'; // FIX: Import the session initialization engine
 import 'dotenv/config';
 
 async function runEmbedderTest() {
-  console.log("Starting Embedder Pipeline Test...");
+  console.log("🚀 Starting Embedder Pipeline Test...");
 
-  // 1. Create a mock array containing 2-3 realistic RBC transaction rows
+  // 1. Setup: Instantiate a clean, isolated testing sandbox session
+  const session = createSession(); 
+
+  // Mock array containing realistic RBC transaction rows
   const mockRbcData = [
     {
         "Account Type": "Chequing",
@@ -35,25 +38,22 @@ async function runEmbedderTest() {
   ];
 
   try {
-    // 2. Pass the mock data to your ingestion pipeline
-    await create_vector_record(mockRbcData);
+    // 2. Pass the sandboxed session alongside your data mock
+    await ingest_user_file(session, mockRbcData);
 
-    // 3. Verify the database size
-    console.log(`\n Pass: Test Complete. Store currently holds ${store.get_size()} records.`);
+    // FIX: Verify size by targeting the specific session's vector container
+    console.log(`\n Pass: Test Complete. Store currently holds ${session.vectorStore.get_size()} records.`);
 
     // 4. Run a quick search to ensure the metadata context was formatted properly
     const testQuery = "What is spend on food?";
     console.log(`\n Translating user question: "${testQuery}"`);
     
-    // Convert text question into a vector
     const queryVector = await getEmbedding(`search_query: ${testQuery}`);
 
-    console.log(` Running Cosine Similarity Search...`);
+    console.log(` Running Cosine Similarity Search against isolated session engine...`);
     
-    // BUMPED TO 3: This forces the database to return EVERY single record it has sorted by match quality
-    const searchResults = store.similaritySearch(queryVector, 3);
+    const searchResults = session.vectorStore.similaritySearch(queryVector, 3);
 
-    // Finally, print all the results to see the LLM's modifications and match rankings
     console.log("\n=== Search Results (Ranked Top to Bottom) ===");
     searchResults.forEach((result, idx) => {
       console.log(`\n Rank ${idx + 1} (Score: ${result.score.toFixed(4)})`);
@@ -63,7 +63,7 @@ async function runEmbedderTest() {
     console.log("\n============================================");
 
   } catch (error) {
-    console.error("Error: Test failed:", error);
+    console.error("❌ Error: Test failed:", error);
   }
 }
 
