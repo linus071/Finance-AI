@@ -1,0 +1,26 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test-tools": "npx ts-node src/test-tools.ts",
+    "test-agent": "npx ts-node src/test-agent.ts",
+    "mcp-start": "npx ts-node src/mcp/server.ts",
+    "test-embedder": "npx ts-node src/test-embedder.ts",
+    "test-upload": "npx ts-node src/test-upload.ts",
+    "test-query": "npx ts-node src/test-query.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}

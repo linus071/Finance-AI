@@ -74,12 +74,10 @@ export const getEmbedding = async (text: string): Promise<number[]> => {
   return data.embedding;
 };
 
-export const CHAT_MODEL = process.env.LLM_PROVIDER === 'groq'
-  ? 'llama-3.1-8b-instant'
-  : 'llama3.2';
-
 /** PROJECT.md alias — chat completions client. */
 export const getLLMClient = getChatClient;
 
-/** Chat model id for the active LLM_PROVIDER. */
-export const MODEL = CHAT_MODEL;
+export const getActiveModelName = (): string => {
+  const provider = (process.env.LLM_PROVIDER || 'groq').trim().toLowerCase();
+  return provider === 'groq' ? 'llama-3.1-8b-instant' : 'llama3.2';
+};
