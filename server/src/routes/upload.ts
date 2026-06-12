@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
-import { ingest_user_file, RawTransactionRow } from '../rag/embedder';
+import { IngesterFactory } from '../rag/factory/IngesterFactory';
+import { RawTransactionRow } from '../rag/factory/types';
 import { sessionStore } from '../session';
 
 const EXPECTED_HEADERS = [
@@ -91,15 +92,11 @@ export async function processUploadedFile(sessionId: string, fileBuffer: Buffer)
     sanitizedPayload.push(transactionRecord);
   }
 
-  console.log(`\n Clear for Ingestion: Verified ${sanitizedPayload.length} valid row objects. Executing throttled pipelines...`);
+  console.log(`\n Clear for Ingestion: Verified ${sanitizedPayload.length} valid row objects. Executing ingestion pipeline...`);
 
-  // 4. Thread-Safe Batching Routine targeting your isolated session parameter instance
-  const PIPELINE_BATCH_LIMIT = 10;
-  for (let batchIndex = 0; batchIndex < sanitizedPayload.length; batchIndex += PIPELINE_BATCH_LIMIT) {
-    const currentBatch = sanitizedPayload.slice(batchIndex, batchIndex + PIPELINE_BATCH_LIMIT);
-    
-    await ingest_user_file(session, currentBatch);
-  }
+  const provider = process.env.LLM_PROVIDER || 'groq';
+  const ingester = IngesterFactory.getIngester(provider);
+  await ingester.ingest(session, sanitizedPayload);
 
   return {
     success: true,  

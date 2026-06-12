@@ -1,12 +1,6 @@
-// server/src/routes/query.ts
 import type { Request, Response } from 'express';
-import { getLLMClient, getActiveModelName } from '../llm/client';
 import { retrieveContext } from '../rag/retriever';
-
-const SYSTEM_PROMPT = `You are a privacy-first personal finance assistant.
-Answer the user's question using only the transaction context provided below.
-If the context does not contain enough information, say so clearly.
-Do not invent transactions or amounts. Be concise and specific.`;
+import { processAgentQuery } from '../mcp/agent';
 
 export async function handleQuery(req: Request, res: Response): Promise<void> {
   const { sessionId, userQuery } = req.body as { sessionId?: string; userQuery?: string };
@@ -17,23 +11,25 @@ export async function handleQuery(req: Request, res: Response): Promise<void> {
   }
 
   try {
-    // Call the isolated retriever module!
-    const context = await retrieveContext(userQuery, sessionId, 20);
+    console.log(`🔍 [HTTP API]: Fetching semantic RAG coordinates for session: ${sessionId}`);
+    
+    // 1. Pull semantic records from your vector storage matches
+    const vectorContext = await retrieveContext(userQuery, sessionId, 20);
 
-    const client = getLLMClient();
-    const activeModel = getActiveModelName();
-    const completion = await client.chat.completions.create({
-      model: activeModel,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: `Transaction context:\n${context}\n\nUser question: ${userQuery.trim()}` },
-      ],
-      temperature: 0.2,
-    });
+    // 2. Package the context cleanly for the agent prompt window
+    const enrichedPrompt = [
+      `[Semantic Transaction Context Matching User Request]:`,
+      vectorContext || "No exact keyword or vector matches found in statement history.",
+      `--------------------------------`,
+      `User Question: ${userQuery.trim()}`
+    ].join('\n');
 
-    res.json({ answer: completion.choices[0]?.message?.content?.trim() ?? '' });
+    // 3. Delegate execution directly to your verified Agent pipeline
+    const bobAnswer = await processAgentQuery(sessionId, enrichedPrompt);
+
+    res.json({ answer: bobAnswer });
   } catch (error: any) {
-    console.error("Query Error:", error);
-    res.status(error.message === 'Session not found or expired' ? 404 : 500).json({ error: error.message });
+    console.error("HTTP Query Endpoint Failure:", error);
+    res.status(error.message?.includes('not found') ? 404 : 500).json({ error: error.message });
   }
 }
