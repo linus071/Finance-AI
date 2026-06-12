@@ -4,22 +4,31 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "npx ts-node src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test-tools": "npx ts-node src/test-tools.ts",
-    "test-agent": "npx ts-node src/test-agent.ts",
+    "test-tools": "npx ts-node src/test_scripts/test-tools.ts",
+    "test-agent": "npx ts-node src/test_scripts/test-agent.ts",
     "mcp-start": "npx ts-node src/mcp/server.ts",
-    "test-embedder": "npx ts-node src/test-embedder.ts",
-    "test-upload": "npx ts-node src/test-upload.ts",
-    "test-query": "npx ts-node src/test-query.ts"
+    "test-embedder": "npx ts-node src/test_scripts/test-embedder.ts",
+    "test-upload": "npx ts-node src/test_scripts/test-upload.ts",
+    "test-query": "npx ts-node src/test_scripts/test-query.ts",
+    "test-server": "npx ts-node src/test_scripts/test-server.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jsonrepair": "^3.14.0",
+    "multer": "^2.1.1"
   },
   "devDependencies": {
-    "@types/node": "^25.9.2",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^25.9.3",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
   }

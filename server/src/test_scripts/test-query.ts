@@ -1,8 +1,8 @@
 // server/src/test-query.ts
-import { sessionStore } from './session'; 
-import { handleQuery } from './routes/query';
+import { sessionStore } from '../session'; 
+import { handleQuery } from '../routes/query';
 import { Request, Response } from 'express';
-import { MemoryVectorStore } from './rag/vectorStore';
+import { MemoryVectorStore } from '../rag/vectorStore';
 import 'dotenv/config';
 import crypto from 'crypto';
 

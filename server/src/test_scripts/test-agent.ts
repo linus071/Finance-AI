@@ -1,6 +1,6 @@
 // server/src/test-agent.ts
-import { createSession } from './session';
-import { processAgentQuery } from './mcp/agent';
+import { createSession } from '../session';
+import { processAgentQuery } from '../mcp/agent';
 import 'dotenv/config';
 
 async function runAgentPipelineTest() {

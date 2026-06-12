@@ -1,6 +1,6 @@
 // server/src/test-tools.ts
-import { createSession } from './session';
-import { executeMcpTool } from './mcp/executor';
+import { createSession } from '../session';
+import { executeMcpTool } from '../mcp/executor';
 
 async function runToolTests() {
   console.log("🚀 Starting Phase 1: Real-World Dataset Tool Integration Tests...\n");

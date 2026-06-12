@@ -1,8 +1,8 @@
 // server/src/test-upload.ts
 import fs from 'fs';
 import path from 'path';
-import { processUploadedFile } from './routes/upload'; 
-import { createSession } from './session'; // FIX: Import the session initialization helper
+import { processUploadedFile } from '../routes/upload'; 
+import { createSession } from '../session'; // FIX: Import the session initialization helper
 import 'dotenv/config';
 
 async function runUploadTest() {
@@ -15,7 +15,7 @@ async function runUploadTest() {
         console.log(`📡 Initialized isolated test session container: ${sessionId}`);
 
         // 2. Read the physical file from your disk into a Buffer
-        const filePath = path.join(__dirname, '../test-statement.csv');
+        const filePath = path.join(__dirname, '../../test-statement.csv');
         
         // Defensive Guard: Check if the file actually exists before reading to avoid ugly Node crashes
         if (!fs.existsSync(filePath)) {

@@ -6,7 +6,7 @@ import path from 'path';
 // Explicitly load env variables from the server folder
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-import { getEmbedding, getChatClient, CHAT_MODEL } from './llm/client';
+import { getEmbedding, getChatClient, CHAT_MODEL } from '../llm/client';
 
 async function testConnection() {
   console.log("🚀 Testing your Finance AI Client Setup...");

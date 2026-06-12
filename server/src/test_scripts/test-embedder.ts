@@ -1,6 +1,6 @@
-import { ingest_user_file } from './rag/embedder';
-import { getEmbedding } from './llm/client';
-import { createSession } from './session'; // FIX: Import the session initialization engine
+import { IngesterFactory } from '../rag/factory/IngesterFactory';
+import { getEmbedding } from '../llm/client';
+import { createSession } from '../session';
 import 'dotenv/config';
 
 async function runEmbedderTest() {
@@ -38,8 +38,9 @@ async function runEmbedderTest() {
   ];
 
   try {
-    // 2. Pass the sandboxed session alongside your data mock
-    await ingest_user_file(session, mockRbcData);
+    const provider = process.env.LLM_PROVIDER || 'groq';
+    const ingester = IngesterFactory.getIngester(provider);
+    await ingester.ingest(session, mockRbcData);
 
     // FIX: Verify size by targeting the specific session's vector container
     console.log(`\n Pass: Test Complete. Store currently holds ${session.vectorStore.get_size()} records.`);
