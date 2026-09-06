@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { sendChatMessage } from '../api/chat';
 import { ApiError } from '../api/client';
 import { useSession } from '../context/SessionContext';
 import { useToast } from '../context/ToastContext';
+import { MarkdownMessage } from './MarkdownMessage';
 
 interface Message {
   id: string;
@@ -141,9 +141,7 @@ export function ChatPanel() {
               }`}
             >
               {msg.role === 'assistant' ? (
-                <div className="markdown-body [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_strong]:font-semibold [&_strong]:text-emerald-300 [&_code]:rounded [&_code]:bg-slate-900 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-emerald-300">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                </div>
+                <MarkdownMessage content={msg.content} />
               ) : (
                 msg.content
               )}

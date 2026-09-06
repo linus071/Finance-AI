@@ -2,6 +2,7 @@
 import { getEmbedding } from '../llm/client';
 import { sessionStore } from '../session';
 import { detectAnomalies } from '../utils/calculateStdDev';
+import { getSpendingStats, type SpendingStatsFilter } from './tools';
 
 /**
  * MCP Tool Implementations
@@ -167,31 +168,91 @@ async function handleProjectMonth(sessionId: string, args: { targetSavings: numb
   ].join('\n');
 }
 
-async function handleSummarizeCategory(sessionId: string, args: { category: string }): Promise<string> {
+async function handleSummarizeCategory(
+  sessionId: string,
+  args: { category?: string } = {},
+): Promise<string> {
   const session = sessionStore.get(sessionId);
   if (!session) return 'Error: Active session not found.';
 
-  const matches = session.transactions.filter(t => 
-    t.category?.toLowerCase().includes(args.category.toLowerCase())
-  );
-  
+  const categoryFilter = args.category?.trim();
+  const matches = categoryFilter
+    ? session.transactions.filter((t) =>
+        t.category?.toLowerCase().includes(categoryFilter.toLowerCase()),
+      )
+    : session.transactions;
+
   if (matches.length === 0) {
-    return `No transactions found matching category keywords: "${args.category}"`;
+    return categoryFilter
+      ? `No transactions found matching category keywords: "${categoryFilter}"`
+      : 'Error: No transactions available.';
   }
 
   const total = matches.reduce((sum, t) => sum + t.amountCad, 0);
   const totalCount = matches.length;
   const averageSpend = total / totalCount;
+  const scopeLabel = categoryFilter ? categoryFilter.toUpperCase() : 'ALL CATEGORIES';
 
   const report = [
-    `=== Category Analysis: ${args.category.toUpperCase()} ===`,
+    `=== Category Analysis: ${scopeLabel} ===`,
     `• Total Expenditure: $${total.toFixed(2)} CAD`,
     `• Transaction Count: ${totalCount} entries`,
     `• Average Transaction Amount: $${averageSpend.toFixed(2)} CAD`,
-    `• Data Scope: Analyzing active session ledger.`
+    `• Data Scope: ${categoryFilter ? `Filtered by category keyword "${categoryFilter}".` : 'Entire active session ledger (no category filter).'}`,
   ].join('\n');
 
   return report;
+}
+
+function formatTransactionLine(label: string, t: { amountCad: number; date: string; merchant?: string; description1: string; category?: string }): string {
+  const merchant = t.merchant || t.description1 || 'Unknown';
+  const category = t.category || 'Uncategorized';
+  return `• ${label}: $${t.amountCad.toFixed(2)} CAD at ${merchant} on ${t.date} [${category}]`;
+}
+
+async function handleGetSpendingStats(
+  sessionId: string,
+  args: SpendingStatsFilter = {},
+): Promise<string> {
+  const session = sessionStore.get(sessionId);
+  if (!session) return 'Error: Active session not found.';
+  if (session.transactions.length === 0) return 'Error: No transactions available.';
+
+  const filter: SpendingStatsFilter = {
+    category: args.category,
+    dateFrom: args.dateFrom,
+    dateTo: args.dateTo,
+  };
+
+  const stats = getSpendingStats(session.transactions, filter);
+  if (!stats) {
+    const scope = [
+      filter.category ? `category="${filter.category}"` : null,
+      filter.dateFrom ? `from=${filter.dateFrom}` : null,
+      filter.dateTo ? `to=${filter.dateTo}` : null,
+    ]
+      .filter(Boolean)
+      .join(', ');
+    return `No transactions matched the requested filter${scope ? ` (${scope})` : ''}.`;
+  }
+
+  const filterNote = [
+    filter.category ? `Category filter: ${filter.category}` : 'Category filter: none (all)',
+    filter.dateFrom || filter.dateTo
+      ? `Date range: ${filter.dateFrom || '…'} → ${filter.dateTo || '…'}`
+      : 'Date range: none (all)',
+  ].join(' | ');
+
+  return [
+    `=== Spending Stats Report ===`,
+    `• Scope: ${filterNote}`,
+    `• Transaction Count: ${stats.transactionCount}`,
+    `• Total (sum of amountCad): $${stats.total.toFixed(2)} CAD`,
+    `• Average: $${stats.average.toFixed(2)} CAD`,
+    formatTransactionLine('Max transaction (highest amountCad)', stats.maxTransaction),
+    formatTransactionLine('Min transaction (lowest amountCad)', stats.minTransaction),
+    `\nNote for AI: For "highest spending" outflows, prefer the min (most negative) amount when debits are negative.`,
+  ].join('\n');
 }
 
 /**
@@ -199,7 +260,7 @@ async function handleSummarizeCategory(sessionId: string, args: { category: stri
  */
 export async function executeMcpTool(sessionId: string, toolName: string, argumentJson: string): Promise<string> {
   try {
-    const args = JSON.parse(argumentJson);
+    const args = JSON.parse(argumentJson || '{}');
 
     switch (toolName) {
       case 'recategorize':
@@ -210,6 +271,8 @@ export async function executeMcpTool(sessionId: string, toolName: string, argume
         return await handleProjectMonth(sessionId, args);
       case 'summarizeCategory':
         return await handleSummarizeCategory(sessionId, args);
+      case 'getSpendingStats':
+        return await handleGetSpendingStats(sessionId, args);
       default:
         return `Error: Unknown tool function call: "${toolName}"`;
     }
