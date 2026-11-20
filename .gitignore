@@ -1,0 +1,23 @@
+# dependencies & build output
+node_modules/
+dist/
+
+# secrets
+.env
+.env.*
+
+# YOUR FINANCIAL DATA — never commit
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.csv
+*.ofx
+*.qfx
+!test/fixtures/*.csv
+!test/fixtures/*.ofx
+
+# editor / OS
+.DS_Store
+.cursor/

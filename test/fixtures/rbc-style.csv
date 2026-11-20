@@ -1,0 +1,7 @@
+"Account Type","Account Number","Transaction Date","Cheque Number","Description 1","Description 2","CAD$","USD$"
+Chequing,00000-1111111,1/19/2026,,"Email Trfs","E-TRANSFER SENT ",-151.00,,
+Chequing,00000-1111111,1/19/2026,,"C-IDP PURCHASE-1234","SAMPLE BBQ HOUSE ",-34.22,,
+Chequing,00000-1111111,1/21/2026,,"Payment","WWW PAYMENT - 9999 PHONECO ",-44.80,,
+Chequing,00000-1111111,1/23/2026,,"Payroll Deposit","ACME CORP ",2500.00,,
+Chequing,00000-1111111,2/21/2026,,"Payment","WWW PAYMENT - 9999 PHONECO ",-44.80,,
+Chequing,00000-1111111,3/21/2026,,"Payment","WWW PAYMENT - 9999 PHONECO ",-44.80,,
